@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="osApp">
+
+<head>
+    <meta charset="UTF-8">
+    <title>多级反馈队列</title>
+    <meta http-equiv="Content-Type" charset="UTF-8">
+    <!--js文件引入-->
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript " src="js/angular.js "></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/osAngular.js"></script>
+    <!--<script type="text/javascript" color="102,185,255" zIndex="-10" opacity="50" count="99" src="js/canvas-nest.min.js"></script>-->
+    <!--css文件引入-->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/os.css">
+</head>
+<style>
+
+</style>
+
+<body style="background-color:#050304">
+    <script type="text/javascript">
+        window.onload = function() {
+            var config = {
+                vx: 4,
+                vy: 4,
+                height: 2,
+                width: 2,
+                count: 400,
+                color: "121, 162, 185",
+                stroke: "100,200,180",
+                dist: 6000,
+                e_dist: 20000,
+                max_conn: 10
+            }
+            CanvasParticle(config);
+        }
+    </script>
+    <script type="text/javascript" src="js/canvas-particle.js"></script>
+
+    <div class="container">
+        <div ng-controller="MainCtrl as ctrl">
+            <div class="row clearfix">
+                <div class="col-md-12 column">
+                    <nav class="navbar navbar-default navbar-inverse" role="navigation">
+                        <div class="navbar-header">
+                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                             <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+                            <h3 style="color:white">多级反馈队列调度算法</h3>
+                        </div>
+                        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+
+                            <ul class="nav navbar-nav navbar-right">
+                                <li>
+                                    <a href="#" data-toggle="modal" data-target="#myModal">时间片设置</a>
+                                </li>
+                                <!--模态框-->
+                                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                <h4 class="modal-title" id="myModalLabel">
+                                                    时间片设置
+                                                </h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row  formForm">
+
+                                                    <form name="queueForm">
+                                                        <div class="formLine">
+
+                                                            <label class="col-md-5 formLabel">第一级队列：</label>
+
+                                                            <input class="col-md-7 formText" type="number" name="queue_1" id="quene_1" ng-model="ctrl.queue_1" required ng-maxlength="8" ng-minlength="1">
+
+                                                        </div>
+
+                                                        <div class="formLine">
+                                                            <label class="col-md-5 formLabel " for="enterTime">第二级队列：</label>
+
+                                                            <input class="col-md-7 formText" type="number" name="queue_2" id="queue_2" ng-model="ctrl.queue_2" required ng-maxlength="8" ng-minlength="1">
+                                                        </div>
+
+                                                        <div class="formLine">
+                                                            <label class="col-md-5 formLabel" for="serverTime">第三级队列：</label>
+                                                            <input class="col-md-7 formText" type="number" name="queue_3" id="queue_3" ng-model="ctrl.queue_3" required ng-maxlength="8" ng-minlength="1">
+                                                        </div>
+                                                        <div class="formLine">
+
+                                                            <input type="button" class="btn btn-primary formButton col-md-6" name="random" id="random" value="随机生成" ng-click="ctrl.createQueue()">
+
+
+
+                                                            <input type="submit" class="btn btn-success formButton col-md-6 " name="formSubmit " id="formSubmit " value=" &nbsp;确定&nbsp; " ng-click="ctrl.submitQueue()" ng-disabled="queueForm.$invalid">
+
+                                                        </div>
+
+                                                    </form>
+
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                            </div>
+                                        </div>
+                                        <!-- /.modal-content -->
+                                    </div>
+                                    <!-- /.modal -->
+                                </div>
+                                <!--模态框-->
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">速度选择<strong class="caret"></strong></a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a href="#" ng-click="ctrl.setFlag_1()">正常速度</a>
+                                        </li>
+                                        <li class="divider">
+                                        </li>
+                                        <li>
+                                            <a href="#" ng-click="ctrl.setFlag_2()">倍速</a>
+                                        </li>
+                                        <li class="divider">
+                                        </li>
+                                        <li>
+                                            <a href="#" ng-click="ctrl.setFlag_3()">极速</a>
+                                        </li>
+
+
+
+                                    </ul>
+                                </li>
+                                <!--<li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">算法选择<strong class="caret"></strong></a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a href="#" ng-click="ctrl.setFlag_1()">FCFS</a>
+                                        </li>
+                                        <li class="divider">
+                                        </li>
+                                        <li>
+                                            <a href="#" ng-click="ctrl.setFlag_2()">高优先响应比调度</a>
+                                        </li>
+
+
+
+                                    </ul>
+                                </li>-->
+                            </ul>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="row clearfix" style="margin-left:0px;margin-right:0px;">
+                <div class="col-md-5  formForm panel panel-primary" style="padding-right:15px;">
+
+                    <form name="processForm">
+                        <div class="formLine">
+
+                            <label class="col-md-4 formLabel">&nbsp;&nbsp;&nbsp;进程名：</label>
+
+                            <input class="col-md-8 formText" type="text" name="processNme" id="processNmae" ng-model="ctrl.processName" required ng-maxlength="8" ng-minlength="1">
+
+                        </div>
+
+                        <div class="formLine">
+                            <label class="col-md-4 formLabel " for="enterTime">进入时间：</label>
+
+                            <input class="col-md-8 formText" type="number" name="enterTime" id="enterTime" ng-model="ctrl.enterTime" required ng-maxlength="8" ng-minlength="1">
+                        </div>
+
+                        <div class="formLine">
+                            <label class="col-md-4 formLabel" for="serverTime">服务时间：</label>
+                            <input class="col-md-8 formText" type="number" name="serverTime" id="serverTime" ng-model="ctrl.serverTime" required ng-maxlength="8" ng-minlength="1">
+                        </div>
+                        <div class="formLine">
+
+                            <input type="button" class="btn btn-primary formButton col-md-6" style="margin-bottom: 15px" name="random" id="random" value="随机生成" ng-click="ctrl.create()">
+
+
+
+                            <input type="submit" class="btn btn-success formButton col-md-6" style="margin-bottom: 15px" name="formSubmit " id="formSubmit " value=" &nbsp;添加&nbsp; " ng-click="ctrl.submit()" ng-disabled="processForm.$invalid">
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+                <div class="col-md-1">
+                </div>
+
+                <div class="col-md-6  panel panel-primary">
+                    <div class="block ">
+
+                        <div class="block-content collapse in " style="height: 410.375px;overflow: auto">
+                            <div class="span12 ">
+                                <table class="table ">
+                                    <thead>
+                                        <tr>
+                                            <th>序列</th>
+                                            <th>进程名</th>
+                                            <th>进入时间</th>
+                                            <th>服务时间</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+
+
+                                        <tr ng-repeat="lineData in ctrl.list">
+
+                                            <td ng-if="$odd" class="danger"><span ng-bind="$index"></span></td>
+                                            <td ng-if="$even" class="success"><span ng-bind="$index"></span></td>
+
+                                            <td ng-if="$odd" class="danger"><span ng-bind="lineData.processName "></span></td>
+                                            <td ng-if="$even" class="success"><span ng-bind="lineData.processName "></span></td>
+
+                                            <td ng-if="$odd" class="danger"><span ng-bind="lineData.enterTime "></span></td>
+                                            <td ng-if="$even" class="success"><span ng-bind="lineData.enterTime "></span></td>
+
+                                            <td ng-if="$odd" class="danger"><span ng-bind="lineData.serverTime "></span></td>
+                                            <td ng-if="$even" class="success"><span ng-bind="lineData.serverTime "></span></td>
+                                        </tr>
+                                        <tr class="warning">
+                                            <td><span ng-bind="ctrl.number"></span></td>
+                                            <td><span ng-bind="ctrl.processName "></span></td>
+                                            <td><span ng-bind="ctrl.enterTime "></span></td>
+                                            <td><span ng-bind="ctrl.serverTime "></span></td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div ng-controller="childCtrl as ctrl1">
+            <button type="button" class="btn btn-warning btn-lg btn-block" ng-click="ctrl1.reload()">清空</button>
+            <button type="button" class="btn btn-primary btn-lg btn-block" ng-click="ctrl1.queueRun()">开始执行</button>
+            <hr>
+            <div class="progress">
+                <div class="progress-bar progress-bar-info progress-bar-striped active" ng-style="percent">
+                    <div class="progress-value"><span ng-bind="ctrl1.percentNumber"></span></div>
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">第一级队列:时间片<span ng-bind="ctrl1.queue_1"></span>s</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="block ">
+
+                                <div class="block-content collapse in " style="height: 300px;overflow: auto">
+                                    <div class="span12 ">
+                                        <table class="table ">
+                                            <thead>
+                                                <tr>
+                                                    <th>序列</th>
+                                                    <th>进程名</th>
+                                                    <th>进入时间</th>
+                                                    <th>剩余时间</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="lineData in ctrl1.queue1Arrary1">
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="$index"></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="$index "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.processName"></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.processName "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.enterTime "></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.enterTime "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.remainTime "></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.remainTime "></span></td>
+                                                </tr>
+
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">第二级队列:时间片<span ng-bind="ctrl1.queue_2"></span>s</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="block ">
+
+                                <div class="block-content collapse in " style="height: 300px;overflow: auto">
+                                    <div class="span12 ">
+                                        <table class="table ">
+                                            <thead>
+                                                <tr>
+                                                    <th>序列</th>
+                                                    <th>进程名</th>
+                                                    <th>进入时间</th>
+                                                    <th>剩余时间</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+
+
+
+                                                <tr ng-repeat="lineData in ctrl1.queue2Arrary1">
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="$index"></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="$index "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.processName"></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.processName "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.enterTime "></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.enterTime "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.remainTime "></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.remainTime "></span></td>
+                                                </tr>
+
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">第三级队列:时间片<span ng-bind="ctrl1.queue_3"></span>s</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="block ">
+
+                                <div class="block-content collapse in " style="height: 300px;overflow: auto">
+                                    <div class="span12 ">
+                                        <table class="table ">
+                                            <thead>
+                                                <tr>
+                                                    <th>序列</th>
+                                                    <th>进程名</th>
+                                                    <th>进入时间</th>
+                                                    <th>剩余时间</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+
+
+
+                                                <tr ng-repeat="lineData in ctrl1.queue3Arrary1">
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="$index"></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="$index "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.processName"></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.processName "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.enterTime "></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.enterTime "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.remainTime "></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.remainTime "></span></td>
+                                                </tr>
+                                                <tr ng-repeat="lineData in ctrl1.queue3Arrary2">
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="$index"></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="$index "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.processName"></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.processName "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.enterTime "></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.enterTime "></span></td>
+
+                                                    <td ng-if="$odd && lineData.remainTime>0" class="danger"><span ng-bind="lineData.remainTime "></span></td>
+                                                    <td ng-if="$even && lineData.remainTime>0" class="success"><span ng-bind="lineData.remainTime "></span></td>
+                                                </tr>
+
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">结果统计</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="block ">
+
+                        <div class="block-content collapse in " style="height: 300px;overflow: auto">
+                            <div class="span12 ">
+                                <table class="table ">
+                                    <thead>
+                                        <tr>
+                                            <th>序列</th>
+                                            <th>进程名</th>
+                                            <th>服务时间</th>
+                                            <th>周转时间</th>
+                                            <th>带权周转时间</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+
+
+                                        <tr ng-repeat="lineData in ctrl1.result">
+
+                                            <td ng-if="$odd" class="danger"><span ng-bind="$index"></span></td>
+                                            <td ng-if="$even" class="success"><span ng-bind="$index "></span></td>
+
+                                            <td ng-if="$odd " class="danger"><span ng-bind="lineData.processName"></span></td>
+                                            <td ng-if="$even " class="success"><span ng-bind="lineData.processName "></span></td>
+
+                                            <td ng-if="$odd " class="danger"><span ng-bind="lineData.serverTime "></span></td>
+                                            <td ng-if="$even " class="success"><span ng-bind="lineData.serverTime "></span></td>
+
+                                            <td ng-if="$odd " class="danger"><span ng-bind="lineData.delayTime "></span></td>
+                                            <td ng-if="$even" class="success"><span ng-bind="lineData.delayTime "></span></td>
+
+                                            <td ng-if="$odd " class="danger"><span ng-bind="lineData.averageDelayTime "></span></td>
+                                            <td ng-if="$even " class="success"><span ng-bind="lineData.averageDelayTime "></span></td>
+
+
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+
+    </div>
+
+</body>
+
+</html>
